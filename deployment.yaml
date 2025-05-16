@@ -20,7 +20,11 @@ spec:
         - name: NODE_ENV
           value: production
         - name: MONGODB_URI
-          value: "mongodb://mongouser:mongopassword@mongodb:27017/calculator?authSource=admin"
+        # Read in the secret for the MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGODB_URI
         ports:
         - containerPort: 3000
         resources:
