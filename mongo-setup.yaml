@@ -8,7 +8,7 @@ spec:
       restartPolicy: OnFailure
       containers:
       # Instead of using the setup script with the necessary env tools,
-      # a mongo image is pulled and ESS is passed with the appropriate commands
+      # a mongo image is pulled and ESS is passed with the appropriate command
       # to create the connection string, database, and user.
       - name: mongo-setup
         image: mongo:6.0
