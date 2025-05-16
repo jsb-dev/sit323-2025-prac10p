@@ -1,42 +1,46 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: mongo-init
+  name: mongo-init-job
 spec:
   template:
-    spec: 
-      restartPolicy: OnFailure
+    spec:
       containers:
-      - name: mongo-setup
+      - name: mongo-init
         image: mongo:6.0
-        command: ["sh", "-c"]
-        args:
-        # Try if authentication is failing
-        # mongo admin --host mongodb --authenticationDatabase admin --eval
+        command:
+        - sh
+        - -c
         - |
-          mongo admin --host mongodb --eval "
-            db = db.getSiblingDB('$MONGO_DATABASE');
-            db.createUser({
-              user: '$MONGODB_USERNAME',
-              pwd: '$MONGO_PASSWORD',
-              roles: [
-                { role: 'readWrite', db: '$MONGO_DATABASE' }
-              ]
-            });
+          echo "Waiting for MongoDB to start..."
+          sleep 10
+
+          MONGO_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+          MONGO_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+          MONGO_DATABASE=${MONGO_INITDB_DATABASE}
+
+          echo "Creating db user..."
+          mongosh "mongodb://mongodb:27017" --eval "
+          use $MONGO_DATABASE;
+          db.createUser({
+            user: '$MONGO_USERNAME',
+            pwd: '$MONGO_PASSWORD',
+            roles: [{ role: 'readWrite', db: '$MONGO_DATABASE' }]
+          });
           "
         env:
-        - name: MONGODB_USERNAME
+        - name: MONGO_INITDB_ROOT_USERNAME
           valueFrom:
             secretKeyRef:
               name: mongodb-secret
               key: MONGO_INITDB_ROOT_USERNAME
-        - name: MONGO_PASSWORD
+        - name: MONGO_INITDB_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mongodb-secret
-              key: MONGO_INITDB_ROOT_PASSWORD
-        - name: MONGO_DATABASE
+              name: MONGO_INITDB_ROOT_PASSWORD
+        - name: MONGO_INITDB_DATABASE
           valueFrom:
             secretKeyRef:
               name: mongodb-secret
               key: MONGO_INITDB_DATABASE
+      restartPolicy: OnFailure
