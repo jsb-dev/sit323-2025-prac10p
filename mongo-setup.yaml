@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-init
+spec:
+  template:
+    spec: 
+      restartPolicy: OnFailure
+      containers:
+      # Instead of using the setup script with the necessary env tools,
+      # a mongo image is pulled and ESS is passed with the appropriate commands
+      # to create the connection string, database, and user.
+      - name: mongo-setup
+        image: mongo:6.0
+        command: ["mongosh"]
+        args:
+        - "--eval"
+        - |
+          const user = process.env.MONGODB_USERNAME;
+          const pwd = process.env.MONGO_PASSWORD;
+          const dbName = process.env.MONGO_DATABASE;
+          const connection = new Mongo("mongodb://+user+":"+pwd+"@mongodb:27017/admin");
+          const db = connection.getDB(dbName);
+          db.createUser({
+            user: user,
+            pwd: pwd,
+            roles: [
+              { role: "readWrite", db: dbName },
+              { role: "dbAdmin", db: dbName }
+            ]
+          });
+          print("User created: " + user in dbName);
+        env:
+        - name: MONGODB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_INITDB_ROOT_USERNAME
+        - name: MONGO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+        - name: MONGO_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_INITDB_DATABASE
