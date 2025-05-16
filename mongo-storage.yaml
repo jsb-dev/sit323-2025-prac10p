@@ -1,17 +1,4 @@
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mongo-pv
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: "/mnt/data/mongo"
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mongo-pvc
@@ -21,3 +8,17 @@ spec:
   resources:
     requests:
       storage: 1Gi
+  storageClassName: standard # This will allow GKE to provision the disk for us
+---
+# Dynamic provisioning for the backup volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-backup-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard

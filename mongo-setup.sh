@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Load environment variables from Kubernetes secrets
 MONGO_USERNAME=$(kubectl get secret mongodb-secret -o jsonpath='{.data.MONGO_INITDB_ROOT_USERNAME}' | base64 --decode)
 MONGO_PASSWORD=$(kubectl get secret mongodb-secret -o jsonpath='{.data.MONGO_INITDB_ROOT_PASSWORD}' | base64 --decode)
