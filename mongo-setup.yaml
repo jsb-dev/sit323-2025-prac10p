@@ -11,6 +11,8 @@ spec:
         image: mongo:6.0
         command: ["sh", "-c"]
         args:
+        # Try if authentication is failing
+        # mongo admin --host mongodb --authenticationDatabase admin --eval
         - |
           mongo admin --host mongodb --eval "
             db = db.getSiblingDB('$MONGO_DATABASE');
